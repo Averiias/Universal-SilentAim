@@ -94,7 +94,7 @@ oldNamecall = hookmetamethod(game, "__namecall", function(...)
             if HitPart then
                 local Origin = A_Ray.Origin
                 local Direction = getDirection(Origin, HitPart.Position)
-                Arguments[1] = Ray.new(Origin, Direction)
+                Arguments[2] = Ray.new(Origin, Direction)
 
                 return oldNamecall(unpack(Arguments))
             end
