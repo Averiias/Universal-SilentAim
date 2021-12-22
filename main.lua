@@ -59,82 +59,57 @@ local function getClosestPlayer()
 end
 
 local oldNamecall
-oldNamecall = hookmetamethod(game, "__namecall", function(T, ...)
+oldNamecall = hookmetamethod(game, "__namecall", function(...)
     local Method = getnamecallmethod()
-    if Config.Enabled then
+    local Arguments = {...}
+    local self = Arguments[1]
+
+    if Config.Enabled and self == workspace then
         if Method == "FindPartOnRayWithIgnoreList" and Config.Method == Method then
-            local Arguments = {...}
-            local A_Ray = Arguments[1]
-            local A_IgnoreTable = Arguments[2]
-            local A_Cubes = Arguments[3]
-            local A_IgnoreWater = Arguments[4]
+            local A_Ray = Arguments[2]
 
             local HitPart = getClosestPlayer()
             if HitPart then
                 local Origin = A_Ray.Origin
                 local Direction = getDirection(Origin, HitPart.Position)
-                return oldNamecall(
-                    T,
-                    Ray.new(Origin, Direction),
-                    A_IgnoreTable,
-                    A_Cubes,
-                    A_IgnoreWater
-                )
+                Arguments[2] = Ray.new(Origin, Direction)
+
+                return oldNamecall(unpack(Arguments))
             end
         elseif Method == "FindPartOnRayWithWhitelist" and Config.Method == Method then
-            local Arguments = {...}
-            local A_Ray = Arguments[1]
-            local A_WhitelistTable = Arguments[2]
-            local A_IgnoreWater = Arguments[3]
+            local A_Ray = Arguments[2]
 
             local HitPart = getClosestPlayer()
             if HitPart then
                 local Origin = A_Ray.Origin
                 local Direction = getDirection(Origin, HitPart.Position)
-                return oldNamecall(
-                    T,
-                    Ray.new(Origin, Direction),
-                    A_WhitelistTable,
-                    A_IgnoreWater
-                )
+                Arguments[2] = Ray.new(Origin, Direction)
+
+                return oldNamecall(unpack(Arguments))
             end
         elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and Config.Method:lower() == Method:lower() then
-            local Arguments = {...}
-            local A_Ray = Arguments[1]
-            local A_IgnoreInstance = Arguments[2]
-            local A_Cubes = Arguments[3]
-            local A_IgnoreWater = Arguments[4]
+            local A_Ray = Arguments[2]
 
             local HitPart = getClosestPlayer()
             if HitPart then
                 local Origin = A_Ray.Origin
                 local Direction = getDirection(Origin, HitPart.Position)
-                return oldNamecall(
-                    T,
-                    Ray.new(Origin, Direction),
-                    A_IgnoreInstance,
-                    A_Cubes,
-                    A_IgnoreWater
-                )
+                Arguments[1] = Ray.new(Origin, Direction)
+
+                return oldNamecall(unpack(Arguments))
             end
         elseif Method == "Raycast" and Config.Method == Method then
-            local Arguments = {...}
-            local A_Origin = Arguments[1]
-            local A_Direction = Arguments[2]
-            local A_RaycastParams = Arguments[3]
+            local A_Origin = Arguments[2]
 
             local HitPart = getClosestPlayer()
             if HitPart then
-                return oldNamecall(
-                    T,
-                    A_Origin,
-                    getDirection(A_Origin, HitPart.Position),
-                    A_RaycastParams
-                )
+                Arguments[3] =  getDirection(A_Origin, HitPart.Position)
+
+                return oldNamecall(unpack(Arguments))
             end
         end
     end
-    return oldNamecall(T, ...)
+    return oldNamecall(...)
 end)
 
 do
