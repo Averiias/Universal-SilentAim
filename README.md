@@ -11,4 +11,4 @@ Tested On:
 * Island Royale (`FindPartOnRayWithIgnoreList`)
 * Energy Assault (`FindPartOnRayWithIgnoreList`)
 
-![Preview](https://i.vgy.me/6ZFrqC.png)
+![Preview](https://i.vgy.me/DlEc5C.png)

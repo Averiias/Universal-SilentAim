@@ -2,7 +2,11 @@ local Config = {
     Enabled = false,
     TeamCheck = false,
     HitPart = "",
-    Method = ""
+    Method = "",
+    FieldOfView = {
+        Enabled = false,
+        Radius = 180
+    }
 }
 
 local ExpectedArguments = {
@@ -90,7 +94,7 @@ local function getClosestPlayer()
         if not OnScreen then continue end
 
         local Distance = (getMousePosition() - ScreenPosition).Magnitude
-        if Distance <= (DistanceToMouse or 2000) then
+        if Distance <= (DistanceToMouse or (Config.FieldOfView.Enabled and Config.FieldOfView.Radius) or 2000) then
             Closest = Character[Config.HitPart]
             DistanceToMouse = Distance
         end
@@ -163,6 +167,23 @@ end)
 do
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Averiias/purple-haze-pf/main/ui/lib.lua"))()
 
+    local fov_circle = Drawing.new("Circle")
+    fov_circle.Thickness = 1
+    fov_circle.NumSides = 100
+    fov_circle.Radius = 180
+    fov_circle.Filled = false
+    fov_circle.Visible = false
+    fov_circle.ZIndex = 999
+    fov_circle.Transparency = 1
+    fov_circle.Color = Color3.fromRGB(255, 44, 220)
+
+    task.spawn(function()
+        while true do
+            fov_circle.Position = getMousePosition() + Vector2.new(0, 36)
+            task.wait()
+        end
+    end)
+
     local Window = library:CreateWindow({
         WindowName = "Universal Silent Aim by Averias",
         Color = Color3.fromRGB(255, 44, 220)
@@ -170,6 +191,7 @@ do
 
     local GeneralTab = Window:CreateTab("General")
     local MainSector = GeneralTab:CreateSection("Main")
+    local FieldOfViewSector = GeneralTab:CreateSection("Field Of View")
     MainSector:CreateToggle("Enabled", false, function(State)
         Config.Enabled = State
     end)
@@ -188,4 +210,17 @@ do
     }, function(State)
         Config.Method = State
     end)
+    FieldOfViewSector:CreateToggle("Enabled", false, function(State)
+        Config.FieldOfView.Enabled = State
+    end)
+    FieldOfViewSector:CreateSlider("Radius", 0, 360, 180, true, function(State)
+        Config.FieldOfView.Radius = State
+        fov_circle.Radius = State
+    end)
+    FieldOfViewSector:CreateToggle("Visible", false, function(State)
+        fov_circle.Visible = State
+    end)
+    FieldOfViewSector:CreateColorpicker("Color", function(State)
+        fov_circle.Color = State
+    end):UpdateColor(Color3.fromRGB(255, 44, 220))
 end
