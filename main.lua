@@ -164,6 +164,19 @@ oldNamecall = hookmetamethod(game, "__namecall", function(...)
     return oldNamecall(...)
 end)
 
+local oldIndex = nil 
+oldIndex = hookmetamethod(game, "__index", function(self, Index)
+    if self == Mouse and (Index == "Hit" or Index == "Target") then 
+        if Config.Enabled == true and Config.Method == "Mouse.Hit/Target" and getClosestPlayer() then
+            local HitPart = getClosestPlayer()
+                
+            return ((Index == "Hit" and HitPart.CFrame) or (Index == "Target" and HitPart))
+        end
+    end
+    
+    return oldIndex(self, Index)
+end)
+
 do
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Averiias/purple-haze-pf/main/ui/lib.lua"))()
 
@@ -206,7 +219,8 @@ do
     MainSector:CreateDropdown("Method", {
         "Raycast","FindPartOnRay",
         "FindPartOnRayWithWhitelist",
-        "FindPartOnRayWithIgnoreList"
+        "FindPartOnRayWithIgnoreList",
+        "Mouse.Hit/Target"
     }, function(State)
         Config.Method = State
     end)
