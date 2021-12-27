@@ -1,40 +1,7 @@
-local Config = {
-    Enabled = false,
-    TeamCheck = false,
-    HitPart = "",
-    Method = "",
-    FieldOfView = {
-        Enabled = false,
-        Radius = 180
-    }
-}
-
-local ExpectedArguments = {
-    FindPartOnRayWithIgnoreList = {
-        ArgCountRequired = 3,
-        Args = {
-            "Instance", "Ray", "table", "boolean", "boolean"
-        }
-    },
-    FindPartOnRayWithWhitelist = {
-        ArgCountRequired = 3,
-        Args = {
-            "Instance", "Ray", "table", "boolean"
-        }
-    },
-    FindPartOnRay = {
-        ArgCountRequired = 2,
-        Args = {
-            "Instance", "Ray", "Instance", "boolean", "boolean"
-        }
-    },
-    Raycast = {
-        ArgCountRequired = 3,
-        Args = {
-            "Instance", "Vector3", "Vector3", "RaycastParams"
-        }
-    }
-}
+local Library = loadstring(game:HttpGet('https://lindseyhost.com/UI/LinoriaLib.lua'))()
+Library:SetWatermark("github.com/Averiias")
+Library:Notify('Press Right-CTRL To Toggle The UI')
+Library:Notify('Someone please hire me.. ave#6717')
 
 local Camera = workspace.CurrentCamera
 local Players = game:GetService("Players")
@@ -73,12 +40,12 @@ local function getMousePosition()
 end
 
 local function getClosestPlayer()
-    if not Config.HitPart then return end
+    if not Options.TargetPart.Value then return end
     local Closest
     local DistanceToMouse
     for _, Player in next, GetChildren(Players) do
         if Player == LocalPlayer then continue end
-        if Config.TeamCheck and Player.Team == LocalPlayer.Team then continue end
+        if Toggles.TeamCheck.Value and Player.Team == LocalPlayer.Team then continue end
 
         local Character = Player.Character
 
@@ -94,13 +61,89 @@ local function getClosestPlayer()
         if not OnScreen then continue end
 
         local Distance = (getMousePosition() - ScreenPosition).Magnitude
-        if Distance <= (DistanceToMouse or (Config.FieldOfView.Enabled and Config.FieldOfView.Radius) or 2000) then
-            Closest = Character[Config.HitPart]
+        if Distance <= (DistanceToMouse or (Toggles.fov_Enabled.Value and Options.Radius.Value) or 2000) then
+            Closest = Character[Options.TargetPart.Value]
             DistanceToMouse = Distance
         end
     end
     return Closest
 end
+
+
+local Window = Library:CreateWindow("Universal Silent Aim")
+
+local GeneralTab = Window:AddTab("General")
+local MainBOX = GeneralTab:AddLeftTabbox("Main")
+do
+    local Main = MainBOX:AddTab("Main")
+    Main:AddToggle("aim_Enabled", {Text = "Enabled"})
+    Main:AddToggle("TeamCheck", {Text = "Team Check"})
+    Main:AddDropdown("TargetPart", {Text = "Target Part", Default = 1, Values = {
+        "Head", "HumanoidRootPart"
+    }})
+    Main:AddDropdown("Method", {Text = "Silent Aim Method", Default = 1, Values = {
+        "Raycast","FindPartOnRay",
+        "FindPartOnRayWithWhitelist",
+        "FindPartOnRayWithIgnoreList",
+        "Mouse.Hit/Target"
+    }})
+end
+local FieldOfViewBOX = GeneralTab:AddLeftTabbox("Field Of View")
+do
+    local fov_circle = Drawing.new("Circle")
+    fov_circle.Thickness = 1
+    fov_circle.NumSides = 100
+    fov_circle.Radius = 180
+    fov_circle.Filled = false
+    fov_circle.Visible = false
+    fov_circle.ZIndex = 999
+    fov_circle.Transparency = 1
+    fov_circle.Color = Color3.fromRGB(54, 57, 241)
+
+    local Main = FieldOfViewBOX:AddTab("Field Of View")
+    Main:AddToggle("fov_Enabled", {Text = "Enabled"})
+    Main:AddSlider("Radius", {Text = "Radius", Min = 0, Max = 360, Default = 180, Rounding = 0}):OnChanged(function()
+        fov_circle.Radius = Options.Radius.Value
+    end)
+    Main:AddToggle("Visible", {Text = "Visible"}):AddColorPicker("Color", {Default = Color3.fromRGB(54, 57, 241)}):OnChanged(function()
+        fov_circle.Visible = Toggles.Visible.Value
+        while Toggles.Visible.Value do
+            fov_circle.Visible = Toggles.Visible.Value
+            fov_circle.Color = Options.Color.Value
+            fov_circle.Position = getMousePosition() + Vector2.new(0, 36)
+            task.wait()
+        end
+    end)
+end
+
+
+local ExpectedArguments = {
+    FindPartOnRayWithIgnoreList = {
+        ArgCountRequired = 3,
+        Args = {
+            "Instance", "Ray", "table", "boolean", "boolean"
+        }
+    },
+    FindPartOnRayWithWhitelist = {
+        ArgCountRequired = 3,
+        Args = {
+            "Instance", "Ray", "table", "boolean"
+        }
+    },
+    FindPartOnRay = {
+        ArgCountRequired = 2,
+        Args = {
+            "Instance", "Ray", "Instance", "boolean", "boolean"
+        }
+    },
+    Raycast = {
+        ArgCountRequired = 3,
+        Args = {
+            "Instance", "Vector3", "Vector3", "RaycastParams"
+        }
+    }
+}
+
 
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(...)
@@ -108,8 +151,8 @@ oldNamecall = hookmetamethod(game, "__namecall", function(...)
     local Arguments = {...}
     local self = Arguments[1]
 
-    if Config.Enabled and self == workspace then
-        if Method == "FindPartOnRayWithIgnoreList" and Config.Method == Method then
+    if Toggles.aim_Enabled.Value and self == workspace then
+        if Method == "FindPartOnRayWithIgnoreList" and Options.Method.Value == Method then
             if ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
                 local A_Ray = Arguments[2]
 
@@ -122,7 +165,7 @@ oldNamecall = hookmetamethod(game, "__namecall", function(...)
                     return oldNamecall(unpack(Arguments))
                 end
             end
-        elseif Method == "FindPartOnRayWithWhitelist" and Config.Method == Method then
+        elseif Method == "FindPartOnRayWithWhitelist" and Options.Method.Value == Method then
             if ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithWhitelist) then
                 local A_Ray = Arguments[2]
 
@@ -135,7 +178,7 @@ oldNamecall = hookmetamethod(game, "__namecall", function(...)
                     return oldNamecall(unpack(Arguments))
                 end
             end
-        elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and Config.Method:lower() == Method:lower() then
+        elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and Options.Method.Value:lower() == Method:lower() then
             if ValidateArguments(Arguments, ExpectedArguments.FindPartOnRay) then
                 local A_Ray = Arguments[2]
 
@@ -148,7 +191,7 @@ oldNamecall = hookmetamethod(game, "__namecall", function(...)
                     return oldNamecall(unpack(Arguments))
                 end
             end
-        elseif Method == "Raycast" and Config.Method == Method then
+        elseif Method == "Raycast" and Options.Method.Value == Method then
             if ValidateArguments(Arguments, ExpectedArguments.Raycast) then
                 local A_Origin = Arguments[2]
 
@@ -167,74 +210,12 @@ end)
 local oldIndex = nil 
 oldIndex = hookmetamethod(game, "__index", function(self, Index)
     if self == Mouse and (Index == "Hit" or Index == "Target") then 
-        if Config.Enabled == true and Config.Method == "Mouse.Hit/Target" and getClosestPlayer() then
+        if Toggles.aim_Enabled.Value == true and Options.Method.Value == "Mouse.Hit/Target" and getClosestPlayer() then
             local HitPart = getClosestPlayer()
-                
+
             return ((Index == "Hit" and HitPart.CFrame) or (Index == "Target" and HitPart))
         end
     end
-    
+
     return oldIndex(self, Index)
 end)
-
-do
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Averiias/purple-haze-pf/main/ui/lib.lua"))()
-
-    local fov_circle = Drawing.new("Circle")
-    fov_circle.Thickness = 1
-    fov_circle.NumSides = 100
-    fov_circle.Radius = 180
-    fov_circle.Filled = false
-    fov_circle.Visible = false
-    fov_circle.ZIndex = 999
-    fov_circle.Transparency = 1
-    fov_circle.Color = Color3.fromRGB(255, 44, 220)
-
-    task.spawn(function()
-        while true do
-            fov_circle.Position = getMousePosition() + Vector2.new(0, 36)
-            task.wait()
-        end
-    end)
-
-    local Window = library:CreateWindow({
-        WindowName = "Universal Silent Aim by Averias",
-        Color = Color3.fromRGB(255, 44, 220)
-    }, game:GetService("CoreGui"))
-
-    local GeneralTab = Window:CreateTab("General")
-    local MainSector = GeneralTab:CreateSection("Main")
-    local FieldOfViewSector = GeneralTab:CreateSection("Field Of View")
-    MainSector:CreateToggle("Enabled", false, function(State)
-        Config.Enabled = State
-    end)
-    MainSector:CreateToggle("Team Check", false, function(State)
-        Config.TeamCheck = State
-    end)
-    MainSector:CreateDropdown("Hit Part", {
-        "Head", "HumanoidRootPart"
-    }, function(State)
-        Config.HitPart = State
-    end)
-    MainSector:CreateDropdown("Method", {
-        "Raycast","FindPartOnRay",
-        "FindPartOnRayWithWhitelist",
-        "FindPartOnRayWithIgnoreList",
-        "Mouse.Hit/Target"
-    }, function(State)
-        Config.Method = State
-    end)
-    FieldOfViewSector:CreateToggle("Enabled", false, function(State)
-        Config.FieldOfView.Enabled = State
-    end)
-    FieldOfViewSector:CreateSlider("Radius", 0, 360, 180, true, function(State)
-        Config.FieldOfView.Radius = State
-        fov_circle.Radius = State
-    end)
-    FieldOfViewSector:CreateToggle("Visible", false, function(State)
-        fov_circle.Visible = State
-    end)
-    FieldOfViewSector:CreateColorpicker("Color", function(State)
-        fov_circle.Color = State
-    end):UpdateColor(Color3.fromRGB(255, 44, 220))
-end
