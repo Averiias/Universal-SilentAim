@@ -1,3 +1,6 @@
+if not syn or not protectgui then
+    getgenv().protectgui = function()end
+end
 local Library = loadstring(game:HttpGet('https://lindseyhost.com/UI/LinoriaLib.lua'))()
 Library:SetWatermark("github.com/Averiias")
 Library:Notify('Press Right-CTRL To Toggle The UI')
