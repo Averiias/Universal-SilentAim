@@ -8,6 +8,7 @@ Library:Notify('Someone please hire me.. ave#6717')
 
 local Camera = workspace.CurrentCamera
 local Players = game:GetService("Players")
+local GuiService = game:GetService("GuiService")
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -15,6 +16,7 @@ local Mouse = LocalPlayer:GetMouse()
 local GetChildren = game.GetChildren
 local WorldToScreen = Camera.WorldToScreenPoint
 local FindFirstChild = game.FindFirstChild
+local GuiInset = GuiService.GetGuiInset
 
 local function getPositionOnScreen(Vector)
     local Vec3, OnScreen = WorldToScreen(Camera, Vector)
@@ -102,6 +104,18 @@ do
     fov_circle.ZIndex = 999
     fov_circle.Transparency = 1
     fov_circle.Color = Color3.fromRGB(54, 57, 241)
+    
+    local mouse_box = Drawing.new("Square")
+    mouse_box.Visible = true 
+    mouse_box.ZIndex = 999 
+    mouse_box.Color = Color3.fromRGB(54, 57, 241)
+    mouse_box.Thickness = 20 
+    mouse_box.Size = Vector2.new(20, 20)
+    mouse_box.Filled = true 
+    
+    --[[while task.wait() do 
+        mouse_box.Position = Vector2.new(Mouse.X, Mouse.Y + GuiInset(GuiService).Y)
+    end]]
 
     local Main = FieldOfViewBOX:AddTab("Field Of View")
     Main:AddToggle("fov_Enabled", {Text = "Enabled"})
@@ -117,8 +131,20 @@ do
             task.wait()
         end
     end)
+    Main:AddToggle("MousePosition", {Text = "Show Fake Mouse Position"}):AddColorPicker("MouseVisualizeColor", {Default = Color3.fromRGB(54, 57, 241)}):OnChanged(function()
+        mouse_box.Visible = Toggles.MousePosition.Value 
+        while Toggles.MousePosition.Value do 
+            if Toggles.aim_Enabled.Value == true and Options.Method.Value == "Mouse.Hit/Target" then
+                mouse_box.Color = Options.MouseVisualizeColor.Value 
+                
+                mouse_box.Visible = ((getClosestPlayer() and true) or false)
+                mouse_box.Position = ((getClosestPlayer() and Vector2.new(Camera:WorldToViewportPoint(getClosestPlayer().Position).X, Camera:WorldToViewportPoint(getClosestPlayer().Position).Y)) or Vector2.new(0, 0))
+            end
+            
+            task.wait()
+        end
+    end)
 end
-
 
 local ExpectedArguments = {
     FindPartOnRayWithIgnoreList = {
