@@ -15,6 +15,7 @@ local Mouse = LocalPlayer:GetMouse()
 
 local GetChildren = game.GetChildren
 local WorldToScreen = Camera.WorldToScreenPoint
+local GetPartsObscuringTarget = Camera.GetPartsObscuringTarget
 local FindFirstChild = game.FindFirstChild
 local GuiInset = GuiService.GetGuiInset
 
@@ -44,6 +45,22 @@ local function getMousePosition()
     return Vector2.new(Mouse.X, Mouse.Y)
 end
 
+local function IsPlayerVisible(Player)
+    local PlayerCharacter = Player.Character
+    local LocalPlayerCharacter = LocalPlayer.Character
+    
+    if not (PlayerCharacter or LocalPlayerCharacter) then return end 
+    
+    local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
+    
+    if not PlayerRoot then return end 
+    
+    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
+    local ObscuringObjects = #GetPartsObscuringTarget(Camera, CastPoints, IgnoreList)
+    
+    return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
+end
+
 local function getClosestPlayer()
     if not Options.TargetPart.Value then return end
     local Closest
@@ -55,6 +72,8 @@ local function getClosestPlayer()
         local Character = Player.Character
 
         if not Character then continue end
+        
+        if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
 
         local HumanoidRootPart = FindFirstChild(Character, "HumanoidRootPart")
         local Humanoid = FindFirstChild(Character, "Humanoid")
@@ -74,7 +93,6 @@ local function getClosestPlayer()
     return Closest
 end
 
-
 local Window = Library:CreateWindow("Universal Silent Aim")
 
 local GeneralTab = Window:AddTab("General")
@@ -83,6 +101,7 @@ do
     local Main = MainBOX:AddTab("Main")
     Main:AddToggle("aim_Enabled", {Text = "Enabled"})
     Main:AddToggle("TeamCheck", {Text = "Team Check"})
+    Main:AddToggle("VisibleCheck", {Text = "Visible Check"})
     Main:AddDropdown("TargetPart", {Text = "Target Part", Default = 1, Values = {
         "Head", "HumanoidRootPart"
     }})
