@@ -8,6 +8,7 @@ Library:Notify('Someone please hire me.. ave#6717')
 
 local Camera = workspace.CurrentCamera
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local GuiService = game:GetService("GuiService")
 
 local LocalPlayer = Players.LocalPlayer
@@ -15,9 +16,16 @@ local Mouse = LocalPlayer:GetMouse()
 
 local GetChildren = game.GetChildren
 local WorldToScreen = Camera.WorldToScreenPoint
+local WorldToViewportPoint = Camera.WorldToViewportPoint
 local GetPartsObscuringTarget = Camera.GetPartsObscuringTarget
 local FindFirstChild = game.FindFirstChild
+local RenderStepped = RunService.RenderStepped
 local GuiInset = GuiService.GetGuiInset
+
+local resume = coroutine.resume 
+local create = coroutine.create
+
+local ValidTargetParts = {"Head", "HumanoidRootPart"};
 
 local function getPositionOnScreen(Vector)
     local Vec3, OnScreen = WorldToScreen(Camera, Vector)
@@ -70,7 +78,6 @@ local function getClosestPlayer()
         if Toggles.TeamCheck.Value and Player.Team == LocalPlayer.Team then continue end
 
         local Character = Player.Character
-
         if not Character then continue end
         
         if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
@@ -86,7 +93,7 @@ local function getClosestPlayer()
 
         local Distance = (getMousePosition() - ScreenPosition).Magnitude
         if Distance <= (DistanceToMouse or (Toggles.fov_Enabled.Value and Options.Radius.Value) or 2000) then
-            Closest = Character[Options.TargetPart.Value]
+            Closest = ((Options.TargetPart.Value == "Random" and Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or Character[Options.TargetPart.Value])
             DistanceToMouse = Distance
         end
     end
@@ -103,7 +110,7 @@ do
     Main:AddToggle("TeamCheck", {Text = "Team Check"})
     Main:AddToggle("VisibleCheck", {Text = "Visible Check"})
     Main:AddDropdown("TargetPart", {Text = "Target Part", Default = 1, Values = {
-        "Head", "HumanoidRootPart"
+        "Head", "HumanoidRootPart", "Random"
     }})
     Main:AddDropdown("Method", {Text = "Silent Aim Method", Default = 1, Values = {
         "Raycast","FindPartOnRay",
@@ -112,30 +119,31 @@ do
         "Mouse.Hit/Target"
     }})
 end
-local FieldOfViewBOX = GeneralTab:AddLeftTabbox("Field Of View")
-do
-    local fov_circle = Drawing.new("Circle")
-    fov_circle.Thickness = 1
-    fov_circle.NumSides = 100
-    fov_circle.Radius = 180
-    fov_circle.Filled = false
-    fov_circle.Visible = false
-    fov_circle.ZIndex = 999
-    fov_circle.Transparency = 1
-    fov_circle.Color = Color3.fromRGB(54, 57, 241)
-    
-    local mouse_box = Drawing.new("Square")
-    mouse_box.Visible = true 
-    mouse_box.ZIndex = 999 
-    mouse_box.Color = Color3.fromRGB(54, 57, 241)
-    mouse_box.Thickness = 20 
-    mouse_box.Size = Vector2.new(20, 20)
-    mouse_box.Filled = true 
-    
-    --[[while task.wait() do 
-        mouse_box.Position = Vector2.new(Mouse.X, Mouse.Y + GuiInset(GuiService).Y)
-    end]]
 
+local FieldOfViewBOX = GeneralTab:AddLeftTabbox("Field Of View")
+local MiscellaneousBOX = GeneralTab:AddLeftTabbox("Miscellaneous")
+
+local fov_circle = Drawing.new("Circle")
+fov_circle.Thickness = 1
+fov_circle.NumSides = 100
+fov_circle.Radius = 180
+fov_circle.Filled = false
+fov_circle.Visible = false
+fov_circle.ZIndex = 999
+fov_circle.Transparency = 1
+fov_circle.Color = Color3.fromRGB(54, 57, 241)
+    
+local mouse_box = Drawing.new("Square")
+mouse_box.Visible = true 
+mouse_box.ZIndex = 999 
+mouse_box.Color = Color3.fromRGB(54, 57, 241)
+mouse_box.Thickness = 20 
+mouse_box.Size = Vector2.new(20, 20)
+mouse_box.Filled = true 
+
+local PredictionAmount = 0.165
+
+do
     local Main = FieldOfViewBOX:AddTab("Field Of View")
     Main:AddToggle("fov_Enabled", {Text = "Enabled"})
     Main:AddSlider("Radius", {Text = "Radius", Min = 0, Max = 360, Default = 180, Rounding = 0}):OnChanged(function()
@@ -143,27 +151,36 @@ do
     end)
     Main:AddToggle("Visible", {Text = "Visible"}):AddColorPicker("Color", {Default = Color3.fromRGB(54, 57, 241)}):OnChanged(function()
         fov_circle.Visible = Toggles.Visible.Value
-        while Toggles.Visible.Value do
-            fov_circle.Visible = Toggles.Visible.Value
-            fov_circle.Color = Options.Color.Value
-            fov_circle.Position = getMousePosition() + Vector2.new(0, 36)
-            task.wait()
-        end
     end)
     Main:AddToggle("MousePosition", {Text = "Show Fake Mouse Position"}):AddColorPicker("MouseVisualizeColor", {Default = Color3.fromRGB(54, 57, 241)}):OnChanged(function()
         mouse_box.Visible = Toggles.MousePosition.Value 
-        while Toggles.MousePosition.Value do 
+    end)
+    
+    local PredictionTab = MiscellaneousBOX:AddTab("Prediction")
+    PredictionTab:AddToggle("Prediction", {Text = "Mouse.Hit/Target Prediction"})
+    PredictionTab:AddSlider("Amount", {Text = "Prediction Amount", Min = 0.165, Max = 1, Default = 0.165, Rounding = 3}):OnChanged(function()
+        PredictionAmount = Options.Amount.Value
+    end)
+end
+
+resume(create(function()
+    RenderStepped:Connect(function()
+        if Toggles.MousePosition.Value then 
             if Toggles.aim_Enabled.Value == true and Options.Method.Value == "Mouse.Hit/Target" then
                 mouse_box.Color = Options.MouseVisualizeColor.Value 
                 
                 mouse_box.Visible = ((getClosestPlayer() and true) or false)
-                mouse_box.Position = ((getClosestPlayer() and Vector2.new(Camera:WorldToViewportPoint(getClosestPlayer().Position).X, Camera:WorldToViewportPoint(getClosestPlayer().Position).Y)) or Vector2.new(0, 0))
+                mouse_box.Position = ((getClosestPlayer() and Vector2.new(WorldToViewportPoint(Camera, getClosestPlayer().Parent.PrimaryPart.Position).X, WorldToViewportPoint(Camera, getClosestPlayer().Parent.PrimaryPart.Position).Y)) or Vector2.new(-9000, -9000)) -- I am too lazy to write this differently - xaxa
             end
-            
-            task.wait()
+        end
+        
+        if Toggles.Visible.Value then 
+            fov_circle.Visible = Toggles.Visible.Value
+            fov_circle.Color = Options.Color.Value
+            fov_circle.Position = getMousePosition() + Vector2.new(0, 36)
         end
     end)
-end
+end))
 
 local ExpectedArguments = {
     FindPartOnRayWithIgnoreList = {
@@ -191,7 +208,6 @@ local ExpectedArguments = {
         }
     }
 }
-
 
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(...)
@@ -261,7 +277,7 @@ oldIndex = hookmetamethod(game, "__index", function(self, Index)
         if Toggles.aim_Enabled.Value == true and Options.Method.Value == "Mouse.Hit/Target" and getClosestPlayer() then
             local HitPart = getClosestPlayer()
 
-            return ((Index == "Hit" and HitPart.CFrame) or (Index == "Target" and HitPart))
+            return ((Index == "Hit" and ((Toggles.Prediction.Value == false and HitPart.CFrame) or (Toggles.Prediction.Value == true and (HitPart.CFrame + (HitPart.Velocity * PredictionAmount))))) or (Index == "Target" and HitPart))
         end
     end
 
