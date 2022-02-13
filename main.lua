@@ -3,8 +3,6 @@ if not syn or not protectgui then
 end
 local Library = loadstring(game:HttpGet('https://lindseyhost.com/UI/LinoriaLib.lua'))()
 Library:SetWatermark("github.com/Averiias")
-Library:Notify('Press Right-CTRL To Toggle The UI')
-Library:Notify('Someone please hire me.. ave#6717')
 
 local Camera = workspace.CurrentCamera
 local Players = game:GetService("Players")
