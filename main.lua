@@ -175,7 +175,7 @@ local function getDirection(Origin, Position)
 end
 
 local function getMousePosition()
-    return Vector2.new(Mouse.X, Mouse.Y)
+    return GetMouseLocation(UserInputService)
 end
 
 local function IsPlayerVisible(Player)
