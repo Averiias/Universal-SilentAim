@@ -423,21 +423,19 @@ end))
 
 local oldIndex = nil 
 oldIndex = hookmetamethod(game, "__index", newcclosure(function(self, Index)
-    if self == Mouse and not checkcaller() then 
-        if Toggles.aim_Enabled.Value and Options.Method.Value == "Mouse.Hit/Target" and getClosestPlayer() then
-            local HitPart = getClosestPlayer();
-            
-            if Index == "Target" or Index == "target" then 
-                return HitPart
-            elseif Index == "Hit" or Index == "hit" then 
-                return ((Toggles.Prediction.Value and (HitPart.CFrame + (HitPart.Velocity * PredictionAmount))) or (not Toggles.Prediction.Value and HitPart.CFrame));
-            elseif Index == "X" or Index == "x" then 
-                return GetMouseLocation(UserInputService).X 
-            elseif Index == "Y" or Index == "y" then 
-                return GetMouseLocation(UserInputService).Y 
-            elseif Index == "UnitRay" then 
-                return Ray.new(self.Origin, (self.Hit - self.Origin).Unit);
-            end
+    if self == Mouse and not checkcaller() and Toggles.aim_Enabled.Value and Options.Method.Value == "Mouse.Hit/Target" and getClosestPlayer() then
+        local HitPart = getClosestPlayer()
+         
+        if Index == "Target" or Index == "target" then 
+            return HitPart
+        elseif Index == "Hit" or Index == "hit" then 
+            return ((Toggles.Prediction.Value and (HitPart.CFrame + (HitPart.Velocity * PredictionAmount))) or (not Toggles.Prediction.Value and HitPart.CFrame))
+        elseif Index == "X" or Index == "x" then 
+            return self.X 
+        elseif Index == "Y" or Index == "y" then 
+            return self.Y 
+        elseif Index == "UnitRay" then 
+            return Ray.new(self.Origin, (self.Hit - self.Origin).Unit)
         end
     end
 
