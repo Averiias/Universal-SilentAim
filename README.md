@@ -13,4 +13,4 @@ Tested On:
 * [The Streets/Prison](https://www.roblox.com/games/455366377) (`Mouse.Hit/Target`)
 * [The Prison](https://www.roblox.com/games/4669040) (`Mouse.Hit/Target`)
 
-![Preview](https://i.vgy.me/eoVhGT.png)
+![Preview](https://i.vgy.me/JBWBjy.png)
