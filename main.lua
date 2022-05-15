@@ -7,9 +7,6 @@ if not syn or not protectgui then
     getgenv().protectgui = function() end
 end
 
-local oldIndex = nil
-local oldNamecall = nil
-
 local SilentAimSettings = {
     ClassName = "Universal Silent Aim - Averiias, Stefanuk12, xaxa",
     ToggleKey = "RightAlt",
@@ -178,12 +175,12 @@ local function getDirection(Origin, Position)
 end
 
 local function getMousePosition()
-    return Vector2.new(oldIndex(Mouse, "X"), oldIndex(Mouse, "Y"))
+    return Vector2.new(Mouse.X, Mouse.Y)
 end
 
 local function IsPlayerVisible(Player)
-    local PlayerCharacter = oldIndex(Player, "Character")
-    local LocalPlayerCharacter = oldIndex(LocalPlayer, "Character")
+    local PlayerCharacter = Player.Character
+    local LocalPlayerCharacter = LocalPlayer.Character
     
     if not (PlayerCharacter or LocalPlayerCharacter) then return end 
     
@@ -191,7 +188,7 @@ local function IsPlayerVisible(Player)
     
     if not PlayerRoot then return end 
     
-    local CastPoints, IgnoreList = {oldIndex(PlayerRoot, "Position"), LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
+    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
     local ObscuringObjects = #GetPartsObscuringTarget(Camera, CastPoints, IgnoreList)
     
     return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
@@ -203,23 +200,23 @@ local function getClosestPlayer()
     local DistanceToMouse
     for _, Player in next, GetChildren(Players) do
         if Player == LocalPlayer then continue end
-        if Toggles.TeamCheck.Value and oldIndex(Player, "Team") == oldIndex(LocalPlayer, "Team") then continue end
+        if Toggles.TeamCheck.Value and Player.Team == LocalPlayer.Team then continue end
 
-        local Character = oldIndex(Player, "Character")
+        local Character = Player.Character
         if not Character then continue end
         
         if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
 
         local HumanoidRootPart = FindFirstChild(Character, "HumanoidRootPart")
         local Humanoid = FindFirstChild(Character, "Humanoid")
-        if not HumanoidRootPart or not Humanoid or Humanoid and oldIndex(Humanoid, "Health") <= 0 then continue end
+        if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
 
-        local ScreenPosition, OnScreen = getPositionOnScreen(oldIndex(HumanoidRootPart, "Position"))
+        local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
         if not OnScreen then continue end
 
         local Distance = (getMousePosition() - ScreenPosition).Magnitude
         if Distance <= (DistanceToMouse or Options.Radius.Value or 2000) then
-            Closest = ((Options.TargetPart.Value == "Random" and oldIndex(Character, ValidTargetParts[math.random(1, #ValidTargetParts)]) or oldIndex(Character, Options.TargetPart.Value)))
+            Closest = ((Options.TargetPart.Value == "Random" and Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or Character[Options.TargetPart.Value])
             DistanceToMouse = Distance
         end
     end
@@ -362,6 +359,7 @@ resume(create(function()
 end))
 
 -- hooks
+local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
     local Method = getnamecallmethod()
     local Arguments = {...}
@@ -423,6 +421,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
     return oldNamecall(...)
 end))
 
+local oldIndex = nil 
 oldIndex = hookmetamethod(game, "__index", newcclosure(function(self, Index)
     if self == Mouse and not checkcaller() then 
         if Toggles.aim_Enabled.Value and Options.Method.Value == "Mouse.Hit/Target" and getClosestPlayer() then
