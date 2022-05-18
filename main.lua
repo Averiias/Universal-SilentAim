@@ -22,6 +22,7 @@ local SilentAimSettings = {
     
     MouseHitPrediction = false,
     MouseHitPredictionAmount = 0.165,
+    HitChance = 100
 }
 
 -- variables
@@ -98,6 +99,18 @@ local ExpectedArguments = {
         }
     }
 }
+
+function CalculateChance(Percentage)
+    -- // Floor the percentage
+    Percentage = math.floor(Percentage)
+
+    -- // Get the chance
+    local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
+
+    -- // Return
+    return chance <= Percentage / 100
+end
+
 
 --[[file handling]] do 
     if not isfolder(MainFileName) then 
@@ -257,6 +270,18 @@ local MainBOX = GeneralTab:AddLeftTabbox("Main") do
     }}):OnChanged(function() 
         SilentAimSettings.SilentAimMethod = Options.Method.Value 
     end)
+    Main:AddSlider('HitChance', {
+        Text = 'Hit chance',
+        Default = 100,
+        Min = 0,
+        Max = 100,
+        Rounding = 1,
+    
+        Compact = false,
+    })
+    Options.HitChance:OnChanged(function()
+        SilentAimSettings.HitChance = Options.HitChance.Value
+    end)
 end
 
 local MiscellaneousBOX = GeneralTab:AddLeftTabbox("Miscellaneous")
@@ -275,7 +300,6 @@ local FieldOfViewBOX = GeneralTab:AddLeftTabbox("Field Of View") do
         mouse_box.Visible = Toggles.MousePosition.Value 
         SilentAimSettings.ShowSilentAimTarget = Toggles.MousePosition.Value 
     end)
-    
     local PredictionTab = MiscellaneousBOX:AddTab("Prediction")
     PredictionTab:AddToggle("Prediction", {Text = "Mouse.Hit/Target Prediction"}):OnChanged(function()
         SilentAimSettings.MouseHitPrediction = Toggles.Prediction.Value
@@ -304,7 +328,6 @@ end
 
 local SaveConfigurationBOX = GeneralTab:AddRightTabbox("Save Configuration") do 
     local Main = SaveConfigurationBOX:AddTab("Save Configuration")
-    
     Main:AddDropdown("SaveConfigurationDropdown", {Values = GetFiles(), Text = "Choose Configuration to Save"})
     Main:AddButton("Save Configuration", function()
         if Options.SaveConfigurationDropdown.Value then 
@@ -330,6 +353,9 @@ local LoadConfigurationBOX = GeneralTab:AddRightTabbox("Load Configuration") do
             Toggles.MousePosition:SetValue(SilentAimSettings.ShowSilentAimTarget)
             Toggles.Prediction:SetValue(SilentAimSettings.MouseHitPrediction)
             Options.Amount:SetValue(SilentAimSettings.MouseHitPredictionAmount)
+            if SilentAimSettings.HitChance ~= nil then
+            Options.HitChance:SetValue(SilentAimSettings.HitChance)
+            end
         end
     end)
 end
@@ -364,8 +390,8 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
     local Method = getnamecallmethod()
     local Arguments = {...}
     local self = Arguments[1]
-
-    if Toggles.aim_Enabled.Value and self == workspace and not checkcaller() then
+    local chance = CalculateChance(SilentAimSettings.HitChance)
+    if Toggles.aim_Enabled.Value and self == workspace and not checkcaller() and chance == true then
         if Method == "FindPartOnRayWithIgnoreList" and Options.Method.Value == Method then
             if ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
                 local A_Ray = Arguments[2]
