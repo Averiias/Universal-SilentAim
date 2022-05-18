@@ -159,9 +159,9 @@ local function LoadFile(FileName)
     assert(FileName or FileName == "string", "oopsies");
     
     local File = string.format("%s/%s/%s.lua", MainFileName, tostring(game.PlaceId), FileName)
-    
-    for Index, Value in next, SilentAimSettings do 
-        SilentAimSettings[Index] = HttpService:JSONDecode(readfile(File))[Index]
+    local ConfigData = HttpService:JSONDecode(readfile(File))
+    for Index, Value in next, ConfigData do
+        SilentAimSettings[Index] = Value
     end
 end
 
@@ -353,9 +353,7 @@ local LoadConfigurationBOX = GeneralTab:AddRightTabbox("Load Configuration") do
             Toggles.MousePosition:SetValue(SilentAimSettings.ShowSilentAimTarget)
             Toggles.Prediction:SetValue(SilentAimSettings.MouseHitPrediction)
             Options.Amount:SetValue(SilentAimSettings.MouseHitPredictionAmount)
-            if SilentAimSettings.HitChance ~= nil then
             Options.HitChance:SetValue(SilentAimSettings.HitChance)
-            end
         end
     end)
 end
