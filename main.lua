@@ -353,7 +353,9 @@ local LoadConfigurationBOX = GeneralTab:AddRightTabbox("Load Configuration") do
             Toggles.MousePosition:SetValue(SilentAimSettings.ShowSilentAimTarget)
             Toggles.Prediction:SetValue(SilentAimSettings.MouseHitPrediction)
             Options.Amount:SetValue(SilentAimSettings.MouseHitPredictionAmount)
+            if SilentAimSettings.HitChance ~= nil then
             Options.HitChance:SetValue(SilentAimSettings.HitChance)
+            end
         end
     end)
 end
