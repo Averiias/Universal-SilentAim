@@ -308,7 +308,6 @@ local FieldOfViewBOX = GeneralTab:AddLeftTabbox("Field Of View") do
         PredictionAmount = Options.Amount.Value
         SilentAimSettings.MouseHitPredictionAmount = Options.Amount.Value
     end)
-    
 end
 
 local CreateConfigurationBOX = GeneralTab:AddRightTabbox("Create Configuration") do 
@@ -329,7 +328,6 @@ end
 
 local SaveConfigurationBOX = GeneralTab:AddRightTabbox("Save Configuration") do 
     local Main = SaveConfigurationBOX:AddTab("Save Configuration")
-    
     Main:AddDropdown("SaveConfigurationDropdown", {Values = GetFiles(), Text = "Choose Configuration to Save"})
     Main:AddButton("Save Configuration", function()
         if Options.SaveConfigurationDropdown.Value then 
