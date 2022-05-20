@@ -8,6 +8,8 @@ if not syn or not protectgui then
 end
 
 local SilentAimSettings = {
+    Enabled = false,
+    
     ClassName = "Universal Silent Aim - Averiias, Stefanuk12, xaxa",
     ToggleKey = "RightAlt",
     
@@ -247,10 +249,12 @@ local MainBOX = GeneralTab:AddLeftTabbox("Main") do
     
     Main:AddToggle("aim_Enabled", {Text = "Enabled"}):AddKeyPicker("aim_Enabled_KeyPicker", {Default = "RightAlt", SyncToggleState = true, Mode = "Toggle", Text = "Enabled", NoUI = false});
     Options.aim_Enabled_KeyPicker:OnClick(function()
-        Toggles.aim_Enabled.Value = not Toggles.aim_Enabled.Value
-        Toggles.aim_Enabled:SetValue(Toggles.aim_Enabled.Value)
+        SilentAimSettings.Enabled = not SilentAimSettings.Enabled
         
-        mouse_box.Visible = Toggles.aim_Enabled.Value
+        Toggles.aim_Enabled.Value = SilentAimSettings.Enabled
+        Toggles.aim_Enabled:SetValue(SilentAimSettings.Enabled)
+        
+        mouse_box.Visible = SilentAimSettings.Enabled
     end)
     
     Main:AddToggle("TeamCheck", {Text = "Team Check", Default = SilentAimSettings.TeamCheck}):OnChanged(function()
