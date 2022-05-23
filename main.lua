@@ -381,7 +381,7 @@ resume(create(function()
         if Toggles.Visible.Value then 
             fov_circle.Visible = Toggles.Visible.Value
             fov_circle.Color = Options.Color.Value
-            fov_circle.Position = getMousePosition() + Vector2.new(0, 36)
+            fov_circle.Position = getMousePosition()
         end
     end)
 end))
