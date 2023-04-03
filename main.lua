@@ -264,10 +264,10 @@ local MainBOX = GeneralTab:AddLeftTabbox("Main") do
     Main:AddToggle("VisibleCheck", {Text = "Visible Check", Default = SilentAimSettings.VisibleCheck}):OnChanged(function()
         SilentAimSettings.VisibleCheck = Toggles.VisibleCheck.Value
     end)
-    Main:AddDropdown("TargetPart", {Text = "Target Part", Default = SilentAimSettings.TargetPart, Values = {"Head", "HumanoidRootPart", "Random"}}):OnChanged(function()
+    Main:AddDropdown("TargetPart", {AllowNull = true, Text = "Target Part", Default = SilentAimSettings.TargetPart, Values = {"Head", "HumanoidRootPart", "Random"}}):OnChanged(function()
         SilentAimSettings.TargetPart = Options.TargetPart.Value
     end)
-    Main:AddDropdown("Method", {Text = "Silent Aim Method", Default = SilentAimSettings.SilentAimMethod, Values = {
+    Main:AddDropdown("Method", {AllowNull = true, Text = "Silent Aim Method", Default = SilentAimSettings.SilentAimMethod, Values = {
         "Raycast","FindPartOnRay",
         "FindPartOnRayWithWhitelist",
         "FindPartOnRayWithIgnoreList",
@@ -333,7 +333,7 @@ end
 
 local SaveConfigurationBOX = GeneralTab:AddRightTabbox("Save Configuration") do 
     local Main = SaveConfigurationBOX:AddTab("Save Configuration")
-    Main:AddDropdown("SaveConfigurationDropdown", {Values = GetFiles(), Text = "Choose Configuration to Save"})
+    Main:AddDropdown("SaveConfigurationDropdown", {AllowNull = true, Values = GetFiles(), Text = "Choose Configuration to Save"})
     Main:AddButton("Save Configuration", function()
         if Options.SaveConfigurationDropdown.Value then 
             UpdateFile(Options.SaveConfigurationDropdown.Value)
@@ -344,7 +344,7 @@ end
 local LoadConfigurationBOX = GeneralTab:AddRightTabbox("Load Configuration") do 
     local Main = LoadConfigurationBOX:AddTab("Load Configuration")
     
-    Main:AddDropdown("LoadConfigurationDropdown", {Values = GetFiles(), Text = "Choose Configuration to Load"})
+    Main:AddDropdown("LoadConfigurationDropdown", {AllowNull = true, Values = GetFiles(), Text = "Choose Configuration to Load"})
     Main:AddButton("Load Configuration", function()
         if table.find(GetFiles(), Options.LoadConfigurationDropdown.Value) then
             LoadFile(Options.LoadConfigurationDropdown.Value)
