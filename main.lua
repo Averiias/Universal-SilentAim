@@ -11,7 +11,7 @@ local SilentAimSettings = {
     Enabled = false,
     
     ClassName = "Universal Silent Aim - Averiias, Stefanuk12, xaxa",
-    ToggleKey = "RightAlt",
+    ToggleKey = "Insert",
     
     TeamCheck = false,
     VisibleCheck = false, 
